@@ -3,6 +3,8 @@ package com.alami.koperasi.model;
 import java.util.Date;
 
 import javax.persistence.MappedSuperclass;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
@@ -25,4 +27,16 @@ public class BaseModel {
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date modifiedDate;
 	private boolean deleted;
+	
+	@PrePersist
+	public void prePersist() {
+		this.createdDate = new Date();
+		this.createdBy = "system";
+	}
+
+	@PreUpdate
+	public void preUpdate() {
+		this.modifiedDate = new Date();
+		this.modifiedBy = "system";
+	}
 }

@@ -47,7 +47,7 @@ public class MemberController {
 		for(MasterMember data : listMasterMember) {
 			MasterMemberDto memberDto = new MasterMemberDto();
 			memberDto.setMemberId(data.getMemberId());
-			memberDto.setMemberAddress(data.getMemberName());
+			memberDto.setMemberAddress(data.getMemberAddress());
 			memberDto.setMemberBirthDate(data.getMemberBirthDate());
 			memberDto.setMemberName(data.getMemberName());
 			memberDto.setMemberMobilePhone(data.getMemberMobilePhone());
@@ -95,7 +95,9 @@ public class MemberController {
 			
 			masterMemberRepository.save(member);
 			
-			Response<MasterMemberResponseDto> response = new Response<MasterMemberResponseDto>();
+			MasterMemberResponseDto responseDto = new MasterMemberResponseDto();
+			responseDto.setResponse("success");
+			Response<MasterMemberResponseDto> response = new Response<MasterMemberResponseDto>(responseDto);
 			return response;
 			
 		}catch(Exception e) {

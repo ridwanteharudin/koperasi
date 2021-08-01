@@ -12,10 +12,12 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class HistoryTransactionMemberDto {
+public class HistoryTransactionDateResponseDto {
 	private String total;
 	@JsonSerialize(using = JsonDateSerializer.class)
 	@JsonDeserialize(using = JsonDateDeserializer.class)
 	private Date tanggal;
 	private String jenisTransaksi;
+	private String memberId;
+	private String memberName;
 }
