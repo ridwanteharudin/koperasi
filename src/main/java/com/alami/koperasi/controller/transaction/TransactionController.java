@@ -11,7 +11,9 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,6 +32,7 @@ import com.alami.koperasi.dto.transaction.SimpananMemberRequestDto;
 import com.alami.koperasi.dto.transaction.SimpananMemberResponseDto;
 import com.alami.koperasi.dto.transaction.TarikSimpananRequestDto;
 import com.alami.koperasi.dto.transaction.TarikSimpananResponseDto;
+import com.alami.koperasi.dto.transaction.TransactionMemberKoperasiRequestDto;
 import com.alami.koperasi.model.member.MasterMember;
 import com.alami.koperasi.model.transaction.BayarPinjamanMember;
 import com.alami.koperasi.model.transaction.PinjamanMember;
@@ -43,6 +46,7 @@ import com.alami.koperasi.repository.transaction.TarikSimpananMemberRepository;
 import com.alami.koperasi.util.DateUtil;
 import com.alami.koperasi.util.UniqueID;
 import com.alami.koperasi.util.constant.transaction.TransactionTypeConstant;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping("/rest/transaction")
@@ -58,6 +62,20 @@ public class TransactionController {
 	@Autowired
 	private TarikSimpananMemberRepository tarikSimpananMemberRepository;
 	
+	private KafkaTemplate<String, String> kafkaTemplate;
+	
+	@Autowired
+	TransactionController(KafkaTemplate<String, String> kafkaTemplate) {
+		this.kafkaTemplate = kafkaTemplate;
+	}
+	
+	@Value("${kafka.topic:test}")
+    private String topic;
+	
+	private void sendMessage(String message, String topicName) {
+		kafkaTemplate.send(topicName, message);
+	}
+
 	@RequestMapping(path = "/listmembertransaction", method = RequestMethod.GET)
 	public Response<List<HistoryTransactionMemberDto>> listTransactionMember(@RequestParam(value="memberId", required = true)String memberId) {
 		List<HistoryTransactionMemberDto> listHistoryTransactionDto = new ArrayList<HistoryTransactionMemberDto>();
@@ -260,6 +278,7 @@ public class TransactionController {
 	@RequestMapping(path = "/simpan", method = RequestMethod.POST)
 	public Response<SimpananMemberResponseDto> simpan(@RequestBody SimpananMemberRequestDto dto){
 		try {
+			ObjectMapper objectMapper = new ObjectMapper();
 			SimpananMember simpananMember = new SimpananMember();
 		
 			if(!StringUtils.hasText(dto.getMemberId())) {
@@ -291,6 +310,18 @@ public class TransactionController {
 			simpananMember.setTotalSimpananMember(dto.getTotalSimpananMember());
 			
 			simpananMemberRepository.save(simpananMember);
+			
+			//send message to kafka
+			TransactionMemberKoperasiRequestDto kafkaDto = new TransactionMemberKoperasiRequestDto();
+			kafkaDto.setMemberId(dto.getMemberId());
+			kafkaDto.setMemberName(optionalMember.get().getMemberName());
+			kafkaDto.setTotalTransactionMemberKoperasi(dto.getTotalSimpananMember());
+			kafkaDto.setTransactionDateMemberKoperasi(dto.getTanggalSimpananMember());
+			kafkaDto.setTransactionTypeMemberKoperasi(TransactionTypeConstant.SIMPANAN);
+			
+			String kafka = objectMapper.writeValueAsString(kafkaDto);
+			this.sendMessage(kafka, topic);
+			
 			SimpananMemberResponseDto responseDto = new SimpananMemberResponseDto();
 			responseDto.setResponse("Success");
 			Response<SimpananMemberResponseDto> response = new Response<SimpananMemberResponseDto>(responseDto);
@@ -307,6 +338,7 @@ public class TransactionController {
 	@RequestMapping(path = "/pinjam", method = RequestMethod.POST)
 	public Response<PinjamanMemberResponseDto> pinjam(@RequestBody PinjamanMemberRequestDto dto){
 		try {
+			ObjectMapper objectMapper = new ObjectMapper();
 			PinjamanMember pinjamanMember = new PinjamanMember();
 		
 			if(!StringUtils.hasText(dto.getMemberId())) {
@@ -338,6 +370,18 @@ public class TransactionController {
 			pinjamanMember.setTotalPinjamanMember(dto.getTotalPinjamanMember());
 			
 			pinjamanMemberRepository.save(pinjamanMember);
+			
+			//send message to kafka
+			TransactionMemberKoperasiRequestDto kafkaDto = new TransactionMemberKoperasiRequestDto();
+			kafkaDto.setMemberId(dto.getMemberId());
+			kafkaDto.setMemberName(optionalMember.get().getMemberName());
+			kafkaDto.setTotalTransactionMemberKoperasi(dto.getTotalPinjamanMember());
+			kafkaDto.setTransactionDateMemberKoperasi(dto.getTanggalPinjamanMember());
+			kafkaDto.setTransactionTypeMemberKoperasi(TransactionTypeConstant.PINJAMAN);
+			
+			String kafka = objectMapper.writeValueAsString(kafkaDto);
+			this.sendMessage(kafka, topic);
+			
 			PinjamanMemberResponseDto responseDto = new PinjamanMemberResponseDto();
 			responseDto.setResponse("Success");
 			Response<PinjamanMemberResponseDto> response = new Response<PinjamanMemberResponseDto>(responseDto);
@@ -354,6 +398,7 @@ public class TransactionController {
 	@RequestMapping(path = "/bayar", method = RequestMethod.POST)
 	public Response<BayarPinjamanMemberResponseDto> bayar(@RequestBody BayarPinjamanMemberRequestDto dto){
 		try {
+			ObjectMapper objectMapper = new ObjectMapper();
 			BayarPinjamanMember bayarPinjamanMember = new BayarPinjamanMember();
 		
 			if(!StringUtils.hasText(dto.getMemberId())) {
@@ -386,6 +431,17 @@ public class TransactionController {
 			
 			bayarPinjamanMemberRepository.save(bayarPinjamanMember);
 			
+			//send message to kafka
+			TransactionMemberKoperasiRequestDto kafkaDto = new TransactionMemberKoperasiRequestDto();
+			kafkaDto.setMemberId(dto.getMemberId());
+			kafkaDto.setMemberName(optionalMember.get().getMemberName());
+			kafkaDto.setTotalTransactionMemberKoperasi(dto.getTotalBayarPinjamanMember());
+			kafkaDto.setTransactionDateMemberKoperasi(dto.getTanggalBayarPinjamanMember());
+			kafkaDto.setTransactionTypeMemberKoperasi(TransactionTypeConstant.BAYAR);
+			
+			String kafka = objectMapper.writeValueAsString(kafkaDto);
+			this.sendMessage(kafka, topic);
+			
 			BayarPinjamanMemberResponseDto responseDto = new BayarPinjamanMemberResponseDto();
 			responseDto.setResponse("Success");
 			Response<BayarPinjamanMemberResponseDto> response = new Response<BayarPinjamanMemberResponseDto>(responseDto);
@@ -402,6 +458,7 @@ public class TransactionController {
 	@RequestMapping(path = "/tarik", method = RequestMethod.POST)
 	public Response<TarikSimpananResponseDto> tarik(@RequestBody TarikSimpananRequestDto dto){
 		try {
+			ObjectMapper objectMapper = new ObjectMapper();
 			TarikSimpananMember tarikSimpananMember = new TarikSimpananMember();
 		
 			if(!StringUtils.hasText(dto.getMemberId())) {
@@ -433,6 +490,17 @@ public class TransactionController {
 			tarikSimpananMember.setTotalTarikSimpananMember(dto.getTotalTarikSimpananMember());
 			
 			tarikSimpananMemberRepository.save(tarikSimpananMember);
+			
+			//send message to kafka
+			TransactionMemberKoperasiRequestDto kafkaDto = new TransactionMemberKoperasiRequestDto();
+			kafkaDto.setMemberId(dto.getMemberId());
+			kafkaDto.setMemberName(optionalMember.get().getMemberName());
+			kafkaDto.setTotalTransactionMemberKoperasi(dto.getTotalTarikSimpananMember());
+			kafkaDto.setTransactionDateMemberKoperasi(dto.getTanggalTarikSimpananMember());
+			kafkaDto.setTransactionTypeMemberKoperasi(TransactionTypeConstant.TARIK);
+			
+			String kafka = objectMapper.writeValueAsString(kafkaDto);
+			this.sendMessage(kafka, topic);
 			
 			TarikSimpananResponseDto responseDto = new TarikSimpananResponseDto();
 			responseDto.setResponse("Success");

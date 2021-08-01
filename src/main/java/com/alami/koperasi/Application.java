@@ -23,5 +23,4 @@ public class Application extends SpringBootServletInitializer{
 		TimeZone.setDefault(TimeZone.getTimeZone("Asia/Bangkok"));
 		SpringApplication.run(Application.class, args);
 	}
-	
 }
