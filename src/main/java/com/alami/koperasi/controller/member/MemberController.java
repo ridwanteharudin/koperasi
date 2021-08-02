@@ -1,5 +1,6 @@
 package com.alami.koperasi.controller.member;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -22,7 +23,9 @@ import com.alami.koperasi.dto.member.MasterMemberDto;
 import com.alami.koperasi.dto.member.MasterMemberRequestDto;
 import com.alami.koperasi.dto.member.MasterMemberResponseDto;
 import com.alami.koperasi.model.member.MasterMember;
+import com.alami.koperasi.model.transaction.PortofolioMember;
 import com.alami.koperasi.repository.member.MasterMemberRepository;
+import com.alami.koperasi.repository.transaction.PortofolioMemberRepository;
 import com.alami.koperasi.util.DateUtil;
 import com.alami.koperasi.util.UniqueID;
 
@@ -31,9 +34,12 @@ import com.alami.koperasi.util.UniqueID;
 public class MemberController {
 	@Autowired
 	private MasterMemberRepository masterMemberRepository;
+	@Autowired
+	private PortofolioMemberRepository portofolioMemberRepository;
 	
 	@RequestMapping(path = "/list", method = RequestMethod.GET)
 	public Response<List<MasterMemberDto>> list() {
+		DecimalFormat df = new DecimalFormat("#");
 		List<MasterMemberDto> listMemberDto = new ArrayList<MasterMemberDto>();
 		List<MasterMember> listMasterMember = masterMemberRepository.findAll(new Specification<MasterMember>() {
 			@Override
@@ -52,6 +58,15 @@ public class MemberController {
 			memberDto.setMemberName(data.getMemberName());
 			memberDto.setMemberMobilePhone(data.getMemberMobilePhone());
 			
+			PortofolioMember portoMember = portofolioMemberRepository.findByMasterMemberMemberId(data.getMemberId());
+			if(portoMember != null) {
+				memberDto.setTotalPinjaman(df.format(portoMember.getTotalPinjamanMember()));
+				memberDto.setTotalSimpanan(df.format(portoMember.getTotalSimpananMember()));
+			}else {
+				memberDto.setTotalPinjaman("0");
+				memberDto.setTotalSimpanan("0");
+			}
+			
 			listMemberDto.add(memberDto);
 		}
 		
@@ -66,12 +81,17 @@ public class MemberController {
 		
 			if(!StringUtils.hasText(dto.getMemberName())) {
 				Response<MasterMemberResponseDto> response = new Response<MasterMemberResponseDto>();
-				response.setError("MEMBER_NAME_EMPTY", "Member Name is null or empty");
+				response.setError("MEMBER_NAME_EMPTY", "Nama tidak boleh kosong");
+				return response;
+			}
+			if(dto.getMemberName().length() < 3) {
+				Response<MasterMemberResponseDto> response = new Response<MasterMemberResponseDto>();
+				response.setError("MEMBER_NAME_ERROR_LENGTH", "Nama minimal 3 huruf");
 				return response;
 			}
 			if(!StringUtils.hasText(dto.getMemberMobilePhone())) {
 				Response<MasterMemberResponseDto> response = new Response<MasterMemberResponseDto>();
-				response.setError("MOBILE_PHONE_EMPTY", "Mobile Phone is null or empty");
+				response.setError("MOBILE_PHONE_EMPTY", "Nomor HP tidak boleh kosong");
 				return response;
 			}
 			
@@ -80,7 +100,7 @@ public class MemberController {
 				Optional<MasterMember> optionalMember = masterMemberRepository.findById(dto.getMemberId());
 				if(!optionalMember.isPresent()) {
 					Response<MasterMemberResponseDto> response = new Response<MasterMemberResponseDto>();
-					response.setError("MEMBER_NOT_FOUND","member doesn't exist","memberId",null);
+					response.setError("MEMBER_NOT_FOUND","Anggota tidak ditemukan","memberId",null);
 					return response;
 				}
 				member = optionalMember.get();

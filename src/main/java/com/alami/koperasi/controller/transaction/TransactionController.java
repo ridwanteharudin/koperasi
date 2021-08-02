@@ -183,12 +183,12 @@ public class TransactionController {
 		
 		if(!StringUtils.hasText(dto.getStartDate())) {
 			Response<List<HistoryTransactionDateResponseDto>> response = new Response<List<HistoryTransactionDateResponseDto>>();
-			response.setError("START_DATE_EMPTY", "Start Date Id is null or empty");
+			response.setError("START_DATE_EMPTY", "Tanggal mulai tidak boleh kosong");
 			return response;
 		}
 		if(!StringUtils.hasText(dto.getEndDate())) {
 			Response<List<HistoryTransactionDateResponseDto>> response = new Response<List<HistoryTransactionDateResponseDto>>();
-			response.setError("END_DATE_EMPTY", "End Date Id is null or empty");
+			response.setError("END_DATE_EMPTY", "Tanggal akhir tidak boleh kosong");
 			return response;
 		}
 		
@@ -302,29 +302,34 @@ public class TransactionController {
 		
 			if(!StringUtils.hasText(dto.getMemberId())) {
 				Response<SimpananMemberResponseDto> response = new Response<SimpananMemberResponseDto>();
-				response.setError("MEMBER_ID_EMPTY", "Member Id is null or empty");
+				response.setError("MEMBER_ID_EMPTY", "Member Id tidak boleh kosong");
 				return response;
 			}
 			if(dto.getTotalSimpananMember() == 0) {
 				Response<SimpananMemberResponseDto> response = new Response<SimpananMemberResponseDto>();
-				response.setError("TOTAL_SIMPANAN_ZERO", "Total Simpanan is zero ");
+				response.setError("TOTAL_SIMPANAN_ZERO", "Total simpanan tidak boleh 0 ");
 				return response;
 			}
 			if(dto.getTotalSimpananMember() < 0) {
 				Response<SimpananMemberResponseDto> response = new Response<SimpananMemberResponseDto>();
-				response.setError("TOTAL_SIMPANAN_MINUS", "Total Simpanan is minus ");
+				response.setError("TOTAL_SIMPANAN_MINUS", "Total simpanan tidak boleh lebih kecil dari 0 ");
 				return response;
 			}
 			if(!StringUtils.hasText(dto.getTanggalSimpananMember())) {
 				Response<SimpananMemberResponseDto> response = new Response<SimpananMemberResponseDto>();
-				response.setError("TANGGAL_IS_EMPTY", "Tanggal is null or empty");
+				response.setError("TANGGAL_IS_EMPTY", "Tanggal tidak boleh kosong");
+				return response;
+			}
+			if(DateUtil.getDateNow().before(DateUtil.convertDate(dto.getTanggalSimpananMember()))) {
+				Response<SimpananMemberResponseDto> response = new Response<SimpananMemberResponseDto>();
+				response.setError("TANGGAL_GTE_TODAY", "Tanggal tidak boleh lebih besar dari hari ini");
 				return response;
 			}
 			
 			Optional<MasterMember> optionalMember = masterMemberRepository.findById(dto.getMemberId());
 			if(!optionalMember.isPresent()) {
 				Response<SimpananMemberResponseDto> response = new Response<SimpananMemberResponseDto>();
-				response.setError("MEMBER_NOT_FOUND","member doesn't exist","memberId",null);
+				response.setError("MEMBER_NOT_FOUND","member tidak di temukan","memberId",null);
 				return response;
 			}
 			
@@ -391,29 +396,34 @@ public class TransactionController {
 			
 			if(!StringUtils.hasText(dto.getMemberId())) {
 				Response<PinjamanMemberResponseDto> response = new Response<PinjamanMemberResponseDto>();
-				response.setError("MEMBER_ID_EMPTY", "Member Id is null or empty");
+				response.setError("MEMBER_ID_EMPTY", "Member Id tidak boleh kosong");
 				return response;
 			}
 			if(dto.getTotalPinjamanMember() == 0) {
 				Response<PinjamanMemberResponseDto> response = new Response<PinjamanMemberResponseDto>();
-				response.setError("TOTAL_PINJAMAN_ZERO", "Total Pinjaman is zero ");
+				response.setError("TOTAL_PINJAMAN_ZERO", "Total Pinjaman tidak boleh 0 ");
 				return response;
 			}
 			if(dto.getTotalPinjamanMember() < 0) {
 				Response<PinjamanMemberResponseDto> response = new Response<PinjamanMemberResponseDto>();
-				response.setError("TOTAL_PINJAMAN_MINUS", "Total Pinjaman is minus ");
+				response.setError("TOTAL_PINJAMAN_MINUS", "Total Pinjaman tidak boleh lebih kecil dari 0");
 				return response;
 			}
 			if(!StringUtils.hasText(dto.getTanggalPinjamanMember())) {
 				Response<PinjamanMemberResponseDto> response = new Response<PinjamanMemberResponseDto>();
-				response.setError("TANGGAL_IS_EMPTY", "Tanggal is null or empty");
+				response.setError("TANGGAL_IS_EMPTY", "Tanggal tidak boleh kosong");
+				return response;
+			}
+			if(DateUtil.getDateNow().before(DateUtil.convertDate(dto.getTanggalPinjamanMember()))) {
+				Response<PinjamanMemberResponseDto> response = new Response<PinjamanMemberResponseDto>();
+				response.setError("TANGGAL_GTE_TODAY", "Tanggal tidak boleh lebih besar dari hari ini");
 				return response;
 			}
 			
 			Optional<MasterMember> optionalMember = masterMemberRepository.findById(dto.getMemberId());
 			if(!optionalMember.isPresent()) {
 				Response<PinjamanMemberResponseDto> response = new Response<PinjamanMemberResponseDto>();
-				response.setError("MEMBER_NOT_FOUND","member doesn't exist","memberId",null);
+				response.setError("MEMBER_NOT_FOUND","member tidak ditemukan","memberId",null);
 				return response;
 			}
 				
@@ -480,24 +490,29 @@ public class TransactionController {
 			
 			if(!StringUtils.hasText(dto.getMemberId())) {
 				Response<BayarPinjamanMemberResponseDto> response = new Response<BayarPinjamanMemberResponseDto>();
-				response.setError("MEMBER_ID_EMPTY", "Member Id is null or empty");
+				response.setError("MEMBER_ID_EMPTY", "Member Id tidak boleh kosong");
 				return response;
 			}
 			if(dto.getTotalBayarPinjamanMember() == 0) {
 				Response<BayarPinjamanMemberResponseDto> response = new Response<BayarPinjamanMemberResponseDto>();
-				response.setError("TOTAL_BAYAR_PINJAMAN_ZERO", "Total Bayar Pinjaman is zero ");
+				response.setError("TOTAL_BAYAR_PINJAMAN_ZERO", "Total Bayar Pinjaman tidak boleh 0 ");
 				return response;
 			}
 			if(!StringUtils.hasText(dto.getTanggalBayarPinjamanMember())) {
 				Response<BayarPinjamanMemberResponseDto> response = new Response<BayarPinjamanMemberResponseDto>();
-				response.setError("TANGGAL_IS_EMPTY", "Tanggal is null or empty");
+				response.setError("TANGGAL_IS_EMPTY", "Tanggal tidak boleh kosong");
+				return response;
+			}
+			if(DateUtil.getDateNow().before(DateUtil.convertDate(dto.getTanggalBayarPinjamanMember()))) {
+				Response<BayarPinjamanMemberResponseDto> response = new Response<BayarPinjamanMemberResponseDto>();
+				response.setError("TANGGAL_GTE_TODAY", "Tanggal tidak boleh lebih besar dari hari ini");
 				return response;
 			}
 			
 			Optional<MasterMember> optionalMember = masterMemberRepository.findById(dto.getMemberId());
 			if(!optionalMember.isPresent()) {
 				Response<BayarPinjamanMemberResponseDto> response = new Response<BayarPinjamanMemberResponseDto>();
-				response.setError("MEMBER_NOT_FOUND","member doesn't exist","memberId",null);
+				response.setError("MEMBER_NOT_FOUND","member tidak di temukan","memberId",null);
 				return response;
 			}
 			
@@ -515,13 +530,13 @@ public class TransactionController {
 			});
 			if(!optionalPortoMember.isPresent()) {
 				Response<BayarPinjamanMemberResponseDto> response = new Response<BayarPinjamanMemberResponseDto>();
-				response.setError("PORTO_NOT_FOUND","portofolio not found","",null);
+				response.setError("PORTO_NOT_FOUND","Member harus melakukan Pinjaman terlebih dahulu","",null);
 				return response;
 			}else {
 				portoMember = optionalPortoMember.get();
 				if(portoMember.getTotalPinjamanMember() < dto.getTotalBayarPinjamanMember()) {
 					Response<BayarPinjamanMemberResponseDto> response = new Response<BayarPinjamanMemberResponseDto>();
-					response.setError("TOTAL_PINJAMAN_LESS_THAN_BAYAR","Total pinjaman less than bayar","",null);
+					response.setError("TOTAL_PINJAMAN_LESS_THAN_BAYAR","Total pinjaman tidak boleh lebih kecil dari bayar","",null);
 					return response;
 				}
 				portoMember.setTotalPinjamanMember(portoMember.getTotalPinjamanMember() - dto.getTotalBayarPinjamanMember());
@@ -568,24 +583,29 @@ public class TransactionController {
 			
 			if(!StringUtils.hasText(dto.getMemberId())) {
 				Response<TarikSimpananResponseDto> response = new Response<TarikSimpananResponseDto>();
-				response.setError("MEMBER_ID_EMPTY", "Member Id is null or empty");
+				response.setError("MEMBER_ID_EMPTY", "Member Id tidak boleh kosong");
 				return response;
 			}
 			if(dto.getTotalTarikSimpananMember() == 0) {
 				Response<TarikSimpananResponseDto> response = new Response<TarikSimpananResponseDto>();
-				response.setError("TOTAL_TARIK_SIMPANAN_ZERO", "Total Tarik Simpanan is zero ");
+				response.setError("TOTAL_TARIK_SIMPANAN_ZERO", "Total Tarik Simpanan tidak boleh 0 ");
 				return response;
 			}
 			if(!StringUtils.hasText(dto.getTanggalTarikSimpananMember())) {
 				Response<TarikSimpananResponseDto> response = new Response<TarikSimpananResponseDto>();
-				response.setError("TANGGAL_IS_EMPTY", "Tanggal is null or empty");
+				response.setError("TANGGAL_IS_EMPTY", "Tanggal tidak boleh kosong");
+				return response;
+			}
+			if(DateUtil.getDateNow().before(DateUtil.convertDate(dto.getTanggalTarikSimpananMember()))) {
+				Response<TarikSimpananResponseDto> response = new Response<TarikSimpananResponseDto>();
+				response.setError("TANGGAL_GTE_TODAY", "Tanggal tidak boleh lebih besar dari hari ini");
 				return response;
 			}
 			
 			Optional<MasterMember> optionalMember = masterMemberRepository.findById(dto.getMemberId());
 			if(!optionalMember.isPresent()) {
 				Response<TarikSimpananResponseDto> response = new Response<TarikSimpananResponseDto>();
-				response.setError("MEMBER_NOT_FOUND","member doesn't exist","memberId",null);
+				response.setError("MEMBER_NOT_FOUND","member tidak ditemukan","memberId",null);
 				return response;
 			}
 				
@@ -603,13 +623,13 @@ public class TransactionController {
 			});
 			if(!optionalPortoMember.isPresent()) {
 				Response<TarikSimpananResponseDto> response = new Response<TarikSimpananResponseDto>();
-				response.setError("PORTO_NOT_FOUND","portofolio not found","",null);
+				response.setError("PORTO_NOT_FOUND","Member harus melakukan simpanan terlebih dahulu","",null);
 				return response;
 			}else {
 				portoMember = optionalPortoMember.get();
 				if(portoMember.getTotalSimpananMember() < dto.getTotalTarikSimpananMember()) {
 					Response<TarikSimpananResponseDto> response = new Response<TarikSimpananResponseDto>();
-					response.setError("TOTAL_SIMPANAN_LESS_THAN_TARIK","Total simpanan less than tarik","",null);
+					response.setError("TOTAL_SIMPANAN_LESS_THAN_TARIK","Total simpanan tidak boleh lebih kecil dari total tarik","",null);
 					return response;
 				}
 				portoMember.setTotalSimpananMember(portoMember.getTotalSimpananMember() - dto.getTotalTarikSimpananMember());

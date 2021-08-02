@@ -20,4 +20,7 @@ public class MasterMemberDto {
 	
 	private String memberMobilePhone;
 	private String memberAddress;
+	
+	private String totalPinjaman;
+	private String totalSimpanan;
 }
